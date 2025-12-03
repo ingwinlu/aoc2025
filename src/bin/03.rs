@@ -1,7 +1,7 @@
 advent_of_code::solution!(3);
 
 fn parse_numbers(line: &str) -> Vec<u8> {
-    line.bytes().map(|n| n - 48).collect()
+    line.bytes().map(|n| n - b'0').collect()
 }
 
 fn calc_battery_power_1(a: u8, b: u8) -> u8 {
