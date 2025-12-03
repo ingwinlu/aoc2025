@@ -1,6 +1,9 @@
 name: Update readme ⭐️ progress
 
 on:
+    push:
+        branches:
+            - main
     # !Please set a different minute than 51 if you enable this!
     # schedule:
     #     - cron: "51 */6 * * *" # Every 6 hours
@@ -9,7 +12,7 @@ on:
 jobs:
     update-readme:
         runs-on: ubuntu-latest
-        if: ${{ vars.AOC_ENABLED == 'true' }}
+        if: ${{ vars.AOC_ENABLED == 'true' && !contains(github.event.head_commit.message, '[skip ci]') }}
         permissions:
             contents: write
         steps:
@@ -21,4 +24,4 @@ jobs:
                   year: ${{ secrets.AOC_YEAR }}
             - uses: stefanzweifel/git-auto-commit-action@v5
               with:
-                  commit_message: "update readme progress"
+                  commit_message: "[skip ci] update readme progress"
