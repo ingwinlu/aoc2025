@@ -95,11 +95,13 @@ pub fn part_two(input: &str) -> Option<u64> {
         let mut new_removed_paper_coords: Vec<Coords> = Vec::new();
         for (x, row) in map.fields.iter().enumerate() {
             for (y, field) in row.iter().enumerate() {
-                if field == &Field::Empty {
-                    continue;
-                }
-                if map.get_paper_neighbors((x, y)) < 4 {
-                    new_removed_paper_coords.push((x, y));
+                match field {
+                    Field::Empty => continue,
+                    Field::Paper => {
+                        if map.get_paper_neighbors((x, y)) < 4 {
+                            new_removed_paper_coords.push((x, y));
+                        }
+                    }
                 }
             }
         }
