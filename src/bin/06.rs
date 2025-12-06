@@ -26,9 +26,9 @@ impl Homework {
         let mut sum = 0;
         for (i, op) in self.ops.iter().enumerate() {
             let column_data = self.data.iter().skip(i).step_by(self.ops.len());
-            let column_result = match op {
+            let column_result: u64 = match op {
                 '+' => column_data.sum(),
-                '*' => column_data.product::<u64>(),
+                '*' => column_data.product(),
                 unknown_op => panic!("unknown op {}", unknown_op),
             };
             sum += column_result;
