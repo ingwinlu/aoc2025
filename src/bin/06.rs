@@ -1,9 +1,17 @@
 advent_of_code::solution!(6);
 
+fn apply_op(op: u8, data: impl Iterator<Item = u64>) -> u64 {
+    match op {
+        b'+' => data.sum(),
+        b'*' => data.product(),
+        unknown_op => panic!("unknown op {}", unknown_op),
+    }
+}
+
 #[derive(Debug)]
 struct Homework {
     data: Vec<u64>,
-    ops: Vec<char>,
+    ops: Vec<u8>,
 }
 
 impl Homework {
@@ -15,7 +23,7 @@ impl Homework {
             for number_or_op in line.split_whitespace() {
                 match number_or_op.parse() {
                     Ok(n) => data.push(n),
-                    Err(_) => ops.push(number_or_op.chars().next().unwrap()),
+                    Err(_) => ops.push(number_or_op.bytes().next().unwrap()),
                 }
             }
         }
@@ -25,12 +33,8 @@ impl Homework {
     fn part1(&self) -> u64 {
         let mut sum = 0;
         for (i, op) in self.ops.iter().enumerate() {
-            let column_data = self.data.iter().skip(i).step_by(self.ops.len());
-            let column_result: u64 = match op {
-                '+' => column_data.sum(),
-                '*' => column_data.product(),
-                unknown_op => panic!("unknown op {}", unknown_op),
-            };
+            let column_data = self.data.iter().skip(i).step_by(self.ops.len()).copied();
+            let column_result = apply_op(*op, column_data);
             sum += column_result;
         }
         sum
@@ -79,11 +83,7 @@ pub fn part_two(input: &str) -> Option<u64> {
                 .iter()
                 .map(|number: &Vec<u8>| number.iter().fold(0, |acc, n| acc * 10 + *n as u64));
 
-            let result: u64 = match op {
-                b'+' => numbers_converted.sum(),
-                b'*' => numbers_converted.product(),
-                _ => panic!("Unexpected op {}", op),
-            };
+            let result = apply_op(op, numbers_converted);
 
             // sum + reset
             sum += result;
