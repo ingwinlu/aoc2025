@@ -59,11 +59,11 @@ pub fn part_two(input: &str) -> Option<u64> {
     while column >= 0 {
         let mut number = Vec::new();
         // go over rows to build number but do not care about ops?
-        for row in 0..(row_count - 1) {
-            match map[row][column as usize] {
+        for row in map.iter().take(row_count - 1) {
+            match row[column as usize] {
                 b' ' => {}
                 b'0'..=b'9' => {
-                    let val = map[row][column as usize] - b'0';
+                    let val = row[column as usize] - b'0';
                     number.push(val);
                 }
                 unexpected_value => {
