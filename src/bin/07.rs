@@ -1,18 +1,18 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use advent_of_code::helper::Map2D;
+use advent_of_code::helper::map2d::Map2D;
 
 advent_of_code::solution!(7);
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let map = Map2D::from_input_as_u8(input);
+    let map = Map2D::from_input(input);
     // find start
     let starting_position = map
-        .data
+        .data()
         .iter()
         .position(|&x| x == b'S')
-        .map(|x| (x % map.width, x / map.width))
+        .map(|x| (x % map.width(), x / map.width()))
         .unwrap();
 
     let mut split_count = 0;
@@ -24,7 +24,7 @@ pub fn part_one(input: &str) -> Option<u64> {
     while let Some(beam) = beams.pop() {
         // step down
         let new_beam_position = (beam.0, beam.1 + 1);
-        if new_beam_position.1 >= map.height {
+        if new_beam_position.1 >= map.height() {
             // end of map
             continue;
         }
@@ -43,7 +43,7 @@ pub fn part_one(input: &str) -> Option<u64> {
                         beams.push(left);
                     }
                 }
-                if beam.0 < map.width - 1 {
+                if beam.0 < map.width() - 1 {
                     let right = (beam.0 + 1, beam.1);
                     if visited.insert(right) {
                         beams.push(right);
@@ -58,12 +58,12 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let map = Map2D::from_input_as_u8(input);
+    let map = Map2D::from_input(input);
     let starting_position = map
-        .data
+        .data()
         .iter()
         .position(|&x| x == b'S')
-        .map(|x| (x % map.width, x / map.width))
+        .map(|x| (x % map.width(), x / map.width()))
         .unwrap();
 
     let mut cache = HashMap::new();
@@ -83,7 +83,7 @@ fn count_splits(
     }
 
     let (x, y) = pos;
-    if y >= map.height {
+    if y >= map.height() {
         return 0;
     }
 
@@ -94,7 +94,7 @@ fn count_splits(
             if x > 0 {
                 timelines += count_splits((x - 1, y), map, cache);
             }
-            if x < map.width - 1 {
+            if x < map.width() - 1 {
                 timelines += count_splits((x + 1, y), map, cache);
             }
             timelines
