@@ -58,7 +58,7 @@ impl<T> Map2D<T> {
         self.data.get(x + self.width * y)
     }
     // We accept a closure `F` that takes a char and returns a T
-    pub fn from_input_with_transform<F>(input: &str, transform: F) -> Self
+    fn from_input_with_transform<F>(input: &str, transform: F) -> Self
     where
         F: Fn(char) -> T,
     {
