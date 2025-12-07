@@ -28,32 +28,26 @@ pub fn part_one(input: &str) -> Option<u64> {
             // end of map
             continue;
         }
-        if visited.contains(&new_beam_position) {
-            // We have visited this place before, skip running again
-            continue;
-        }
+
         match map.get(new_beam_position) {
             Some(b'.') => {
-                beams.push(new_beam_position);
-                visited.insert(new_beam_position);
+                if visited.insert(new_beam_position) {
+                    beams.push(new_beam_position);
+                }
             }
             Some(b'^') => {
                 split_count += 1;
                 if beam.0 > 0 {
                     let left = (beam.0 - 1, beam.1);
-                    if visited.contains(&left) {
-                        continue;
+                    if visited.insert(left) {
+                        beams.push(left);
                     }
-                    visited.insert(left);
-                    beams.push(left);
                 }
                 if beam.0 < map.width - 1 {
                     let right = (beam.0 + 1, beam.1);
-                    if visited.contains(&right) {
-                        continue;
+                    if visited.insert(right) {
+                        beams.push(right);
                     }
-                    visited.insert(right);
-                    beams.push(right);
                 }
             }
             unexpected => panic!("Unexpected value: {:?}", unexpected),
