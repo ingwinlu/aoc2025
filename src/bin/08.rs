@@ -16,6 +16,7 @@ fn parse(input: &str) -> Vec<JunctionBoxLocation> {
         .collect()
 }
 
+#[derive(Debug)]
 struct Dsu {
     parent: Vec<usize>,
 }
