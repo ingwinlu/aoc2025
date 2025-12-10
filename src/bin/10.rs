@@ -297,7 +297,7 @@ impl Machine {
         let presses = vars.add_vector(variable().min(0), num_buttons);
 
         let objective_expr: good_lp::Expression = presses.iter().sum();
-        let mut model = vars.minimise(objective_expr.clone()).using(default_solver);
+        let mut model = vars.minimise(&objective_expr).using(default_solver);
 
         for (i, &joltage) in self.joltages.iter().enumerate() {
             let mut expr = good_lp::Expression::from(0);
