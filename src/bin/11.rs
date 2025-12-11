@@ -63,16 +63,18 @@ pub fn part_two(input: &str) -> Option<u64> {
     let p = Problem::from_str(input);
     let graph = p.graph();
 
+    // Helper function for counting paths in a DAG using memoization with a (from, to) key
     fn count_paths_dag(
         graph: &DiGraph<String, ()>,
         from: petgraph::prelude::NodeIndex,
         to: petgraph::prelude::NodeIndex,
-        memo: &mut HashMap<petgraph::prelude::NodeIndex, u64>,
+        memo: &mut HashMap<(petgraph::prelude::NodeIndex, petgraph::prelude::NodeIndex), u64>,
     ) -> u64 {
         if from == to {
             return 1;
         }
-        if let Some(&count) = memo.get(&from) {
+        let key = (from, to);
+        if let Some(&count) = memo.get(&key) {
             return count;
         }
 
@@ -81,15 +83,12 @@ pub fn part_two(input: &str) -> Option<u64> {
             .map(|v| count_paths_dag(graph, v, to, memo))
             .sum();
 
-        memo.insert(from, count);
+        memo.insert(key, count);
         count
     }
 
     let mut memo = HashMap::new();
-    let mut count_paths = |from, to| {
-        memo.clear();
-        count_paths_dag(graph, from, to, &mut memo)
-    };
+    let mut count_paths = |from, to| count_paths_dag(graph, from, to, &mut memo);
 
     let svr_idx = *p.node_idx_from_weight("svr").unwrap();
     let out_idx = *p.node_idx_from_weight("out").unwrap();
@@ -97,14 +96,12 @@ pub fn part_two(input: &str) -> Option<u64> {
     let fft_idx = *p.node_idx_from_weight("fft").unwrap();
 
     // Case 1: svr -> dac -> fft -> out
-    let path1_count = count_paths(svr_idx, dac_idx)
-        * count_paths(dac_idx, fft_idx)
-        * count_paths(fft_idx, out_idx);
+    let path1_count =
+        count_paths(svr_idx, dac_idx) * count_paths(dac_idx, fft_idx) * count_paths(fft_idx, out_idx);
 
     // Case 2: svr -> fft -> dac -> out
-    let path2_count = count_paths(svr_idx, fft_idx)
-        * count_paths(fft_idx, dac_idx)
-        * count_paths(dac_idx, out_idx);
+    let path2_count =
+        count_paths(svr_idx, fft_idx) * count_paths(fft_idx, dac_idx) * count_paths(dac_idx, out_idx);
 
     Some(path1_count + path2_count)
 }
