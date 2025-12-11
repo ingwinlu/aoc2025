@@ -29,6 +29,7 @@ tinyjson = "2.5.1"
 
 # Solution dependencies
 good_lp = { version = "*", features = ["microlp"], default-features = false }
+petgraph = "0.8.3"
 
 # Apparently terrible performance in debug so do it in performance
 [profile.dev.package.good_lp]
