@@ -4,6 +4,69 @@ use std::collections::{HashSet, VecDeque};
 
 use good_lp::{Solution, SolverModel, constraint, default_solver, variable};
 
+mod machine_parser {
+    use super::Machine;
+    use nom::{
+        IResult, Parser,
+        branch::alt,
+        character::complete::{char, multispace0, multispace1, u64},
+        combinator::map,
+        multi::{many1, separated_list1},
+        sequence::{delimited, preceded},
+    };
+
+    fn parse_target_state(input: &str) -> IResult<&str, Vec<bool>> {
+        delimited(
+            char('['),
+            many1(map(alt((char('.'), char('#'))), |c| c == '#')),
+            char(']'),
+        )
+        .parse(input)
+    }
+
+    fn parse_button(input: &str) -> IResult<&str, Vec<usize>> {
+        let number = map(u64, |n| n as usize);
+        let sep = delimited(multispace0, char(','), multispace0);
+        delimited(
+            char('('),
+            delimited(multispace0, separated_list1(sep, number), multispace0),
+            char(')'),
+        )
+        .parse(input)
+    }
+
+    fn parse_buttons(input: &str) -> IResult<&str, Vec<Vec<usize>>> {
+        separated_list1(multispace1, parse_button).parse(input)
+    }
+
+    fn parse_joltages(input: &str) -> IResult<&str, Vec<usize>> {
+        let number = map(u64, |n| n as usize);
+        let sep = delimited(multispace0, char(','), multispace0);
+        delimited(
+            char('{'),
+            delimited(multispace0, separated_list1(sep, number), multispace0),
+            char('}'),
+        )
+        .parse(input)
+    }
+
+    pub fn parse_machine(input: &str) -> IResult<&str, Machine> {
+        map(
+            (
+                parse_target_state,
+                preceded(multispace1, parse_buttons),
+                preceded(multispace1, parse_joltages),
+            ),
+            |(target_state, buttons, joltages)| Machine {
+                target_state,
+                buttons,
+                joltages,
+            },
+        )
+        .parse(input)
+    }
+}
+
 #[derive(Debug)]
 struct Machine {
     target_state: Vec<bool>,
@@ -13,80 +76,9 @@ struct Machine {
 
 impl Machine {
     fn from_str(line: &str) -> Machine {
-        let mut target_state = Vec::new();
-        let mut iter = line.bytes();
-        iter.next().unwrap(); // [
-        for b in iter.by_ref() {
-            match b {
-                b']' => break,
-                b'.' => target_state.push(false),
-                b'#' => target_state.push(true),
-                unexpected => panic!("Unexpected value: {:?}", unexpected),
-            }
-        }
-        iter.next().unwrap(); // ' '
-
-        let mut buttons = Vec::new();
-        {
-            let mut button = Vec::new();
-            let mut current_wiring = 0;
-            for b in iter.by_ref() {
-                match b {
-                    b'{' => break,
-                    b'(' => {}
-                    b')' => {
-                        button.push(current_wiring);
-                        current_wiring = 0;
-                        buttons.push(button);
-                        button = Vec::new();
-                    }
-                    b',' => {
-                        button.push(current_wiring);
-                        current_wiring = 0;
-                    }
-                    b'0'..=b'9' => {
-                        // Parse as usize => can use to index directly into target_state
-                        current_wiring = current_wiring * 10 + (b - b'0') as usize;
-                    }
-                    b' ' => {}
-                    unexpected => panic!("Unexpected value: {:?}", unexpected),
-                }
-                if b == b'{' {
-                    break;
-                }
-            }
-        }
-
-        let mut joltages = Vec::new();
-        {
-            let mut current_joltage = 0;
-            for b in iter.by_ref() {
-                match b {
-                    b'}' => {
-                        joltages.push(current_joltage);
-                        current_joltage = 0;
-                    }
-                    b',' => {
-                        joltages.push(current_joltage);
-                        current_joltage = 0;
-                    }
-                    b'0'..=b'9' => {
-                        // Parse as usize => can use to index directly into target_state
-                        current_joltage = current_joltage * 10 + (b - b'0') as usize;
-                    }
-                    b' ' => {}
-                    unexpected => panic!("Unexpected value: {:?}", unexpected),
-                }
-                if b == b'{' {
-                    break;
-                }
-            }
-        }
-
-        Machine {
-            target_state,
-            buttons,
-            joltages,
+        match machine_parser::parse_machine(line) {
+            Ok((_, machine)) => machine,
+            Err(e) => panic!("Failed to parse machine '{line}': {e}"),
         }
     }
 
@@ -320,6 +312,7 @@ fn parse(input: &str) -> Vec<Machine> {
 
 pub fn part_one(input: &str) -> Option<u64> {
     let machines = parse(input);
+    println!("Machines: {:?}", machines);
 
     let minimal_moves = machines.iter().map(|m| m.solve_state()).sum();
     Some(minimal_moves)
